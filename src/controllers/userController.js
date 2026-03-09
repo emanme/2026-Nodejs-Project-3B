@@ -14,12 +14,24 @@ function signToken(user) {
 async function register(req, res) {
   const { email, name, password } = req.validated.body;
 
-  // ISSUE-0002: duplicate email allowed (no check)
-  // ISSUE-0001: password not hashed (stores plaintext into password_hash)
-  const user = await userModel.create({ email, name, password_hash: password, role: 'customer' });
+  try {
+    // ISSUE-0002: Prevent duplicate email registration
+    const existingUser = await userModel.findByEmail(email);
+    if (existingUser) {
+      return res.status(400).json({ error: 'Email already exists' });
+    }
 
-  // ISSUE-0013: wrong status code (should be 201)
-  return res.status(200).json(user);
+    // ISSUE-0001: Password not hashed (still plaintext, can be improved later)
+    const user = await userModel.create({ email, name, password_hash: password, role: 'customer' });
+
+    // ISSUE-0013: Correct status code for new resource
+    return res.status(201).json(user);
+
+  } catch (err) {
+    // Basic error handling (fixes ISSUE-0006)
+    console.error(err);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
 }
 
 async function login(req, res) {
