@@ -23,34 +23,50 @@ const productModel = {
   },
 
   async create({ name, category, price, stock, image_url }) {
-    const conn = await getConn();
-    try {
-      // ISSUE-0003: negative prices allowed (no model-level validation)
-      const [r] = await conn.query(
-        `INSERT INTO products (name, category, price, stock, image_url) VALUES (?, ?, ?, ?, ?)`,
-        [name, category, price, stock, image_url ?? null]
-      );
-      const [rows] = await conn.query(`SELECT * FROM products WHERE id=?`, [r.insertId]);
-      return rows[0];
-    } finally {
-      await conn.end();
+  const conn = await getConn();
+  try {
+
+    // FIX: prevent negative prices
+    if (price < 0) {
+      throw new Error("Price cannot be negative");
     }
-  },
+
+    const [r] = await conn.query(
+      `INSERT INTO products (name, category, price, stock, image_url) VALUES (?, ?, ?, ?, ?)`,
+      [name, category, price, stock, image_url ?? null]
+    );
+
+    const [rows] = await conn.query(`SELECT * FROM products WHERE id=?`, [r.insertId]);
+    return rows[0];
+
+  } finally {
+    await conn.end();
+  }
+},
 
   async update(id, patch) {
-    const conn = await getConn();
-    try {
-      const [r] = await conn.query(
-        `UPDATE products SET name=?, category=?, price=?, stock=?, image_url=? WHERE id=?`,
-        [patch.name, patch.category, patch.price, patch.stock, patch.image_url ?? null, id]
-      );
-      if (r.affectedRows === 0) return null;
-      const [rows] = await conn.query(`SELECT * FROM products WHERE id=?`, [id]);
-      return rows[0];
-    } finally {
-      await conn.end();
+  const conn = await getConn();
+  try {
+
+    // FIX: prevent negative prices
+    if (patch.price !== undefined && patch.price < 0) {
+      throw new Error("Price cannot be negative");
     }
-  },
+
+    const [r] = await conn.query(
+      `UPDATE products SET name=?, category=?, price=?, stock=?, image_url=? WHERE id=?`,
+      [patch.name, patch.category, patch.price, patch.stock, patch.image_url ?? null, id]
+    );
+
+    if (r.affectedRows === 0) return null;
+
+    const [rows] = await conn.query(`SELECT * FROM products WHERE id=?`, [id]);
+    return rows[0];
+
+  } finally {
+    await conn.end();
+  }
+},
 
   async remove(id) {
     const conn = await getConn();
