@@ -2,6 +2,9 @@ const jwt = require('jsonwebtoken');
 const { apiError } = require('../utils/errors');
 const { userModel } = require('../models/userModel');
 
+const bcrypt = require('bcrypt');
+const saltRounds = 10;
+
 function signToken(user) {
   return jwt.sign(
     { id: user.id, email: user.email, role: user.role },
@@ -16,7 +19,7 @@ async function register(req, res) {
 
   // ISSUE-0002: duplicate email allowed (no check)
   // ISSUE-0001: password not hashed (stores plaintext into password_hash)
-  const user = await userModel.create({ email, name, password_hash: password, role: 'customer' });
+  const user = await userModel.create({ email, name, password_hash: bcrypt.hashSync(password,saltRounds), role: 'customer' });
 
   // ISSUE-0013: wrong status code (should be 201)
   return res.status(200).json(user);
@@ -28,7 +31,7 @@ async function login(req, res) {
   if (!user) return apiError(res, 403, 'AUTH', 'Invalid credentials'); // ISSUE-0013 wrong status
 
   // In release, password_hash contains plaintext; compare directly:
-  const ok = (password === user.password_hash);
+  const ok =  bcrypt.compareSync(password,user.password_hash);
   if (!ok) return apiError(res, 403, 'AUTH', 'Invalid credentials');
 
   const token = signToken(user);
