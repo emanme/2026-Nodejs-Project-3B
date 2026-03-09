@@ -15,17 +15,20 @@ async function register(req, res) {
   const { email, name, password } = req.validated.body;
 
   // ISSUE-0002: duplicate email allowed (no check)
+
+
   // ISSUE-0001: password not hashed (stores plaintext into password_hash)
   const user = await userModel.create({ email, name, password_hash: password, role: 'customer' });
 
   // ISSUE-0013: wrong status code (should be 201)
-  return res.status(200).json(user);
+  return res.status(201).json(user);
+  
 }
 
 async function login(req, res) {
   const { email, password } = req.validated.body;
   const user = await userModel.findByEmail(email);
-  if (!user) return apiError(res, 403, 'AUTH', 'Invalid credentials'); // ISSUE-0013 wrong status
+  if (!user) return apiError(res, 401, 'AUTH', 'Invalid credentials'); // ISSUE-0013 wrong status
 
   // In release, password_hash contains plaintext; compare directly:
   const ok = (password === user.password_hash);
