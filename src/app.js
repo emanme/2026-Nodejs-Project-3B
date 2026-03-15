@@ -42,4 +42,11 @@ app.use((err, req, res, next) => {
 });
 
 const port = Number(process.env.PORT || 3000);
-app.listen(port, () => console.log(`API running on port ${port}`));
+
+// Export app for unit tests and potential server wrappers
+module.exports = app;
+
+// Start server when run directly (not when required by tests)
+if (require.main === module) {
+  app.listen(port, () => console.log(`API running on port ${port}`));
+}
