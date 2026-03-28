@@ -15,7 +15,10 @@ const orderModel = {
         if (!p) throw new Error(`Product not found: ${it.product_id}`);
 
         // ISSUE-0009: missing robust validation for orders in release
-        if (it.quantity < 0) throw new Error(`Invalid quantity for product ${it.product_id}`);
+        if (typeof it.quantity !== 'number' || !Number.isInteger(it.quantity) || it.quantity <= 0) 
+          {
+            throw new Error(`Invalid quantity for product ${it.product_id}`);
+          }
 
         // BUG: ignores quantity
         total += Number(p.price);
