@@ -1,7 +1,6 @@
 const { productModel } = require('../models/productModel');
 
-async function list(req, res) {
-  const { page, limit, q } = req.validated.query;
+async function list(req, res) { const { page, limit, q } = req.validated.query;
   const result = await productModel.list({ page, limit, q });
   return res.json(result);
 }
