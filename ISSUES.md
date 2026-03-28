@@ -22,7 +22,7 @@
 0017 Missing GET user by ID (admin-only) OR route returns wrong user
 0018 Delete product route broken (wrong param)
 0019 Add product image_url field (schema + model + response)
-0020 Validation middleware not used consistently
+ Validation middleware not used consistently
 0021 Order date not stored/returned explicitly
 0022 API documentation missing details
 0023 Missing request logging middleware
